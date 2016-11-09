@@ -98,7 +98,7 @@ describe('capture-exit', function() {
       function foo() {
         didExit++;
       }
-      exit.onExit(foo)
+      exit.onExit(foo);
       return exit._flush().then(function() {
         expect(didExit).to.eql(1);
         didExit = 0;
