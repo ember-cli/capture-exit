@@ -46,9 +46,9 @@ module.exports._flush = function(lastTime, code) {
 
   return RSVP.Promise.resolve(lastTime).
     then(function() {
-      return RSVP.map(work, function(handler) {
+      return RSVP.Promise.all(work.map(function(handler) {
         return handler.call(null, code);
-      });
+      }));
     });
 };
 
