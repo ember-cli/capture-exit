@@ -10,7 +10,7 @@ describe('capture-exit', function() {
   });
 
   afterEach(function() {
-    // always restore, incase we have bugs in our code while developing
+    // always restore, in case we have bugs in our code while developing
     process.exit = originalExit;
   });
 
@@ -32,7 +32,7 @@ describe('capture-exit', function() {
 
   describe('.captureExit', function() {
     afterEach(function() {
-      // always restore, incase we have bugs in our code while developing
+      // always restore, in case we have bugs in our code while developing
       process.exit = originalExit;
       exit.releaseExit();
     });
