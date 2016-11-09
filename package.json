@@ -1,0 +1,24 @@
+{
+  "name": "capture-exit",
+  "version": "1.0.0",
+  "description": "safely cleanup in signal handlers",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test",
+    "test:debug": "mocha debug test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stefanpenner/capture-exit.git"
+  },
+  "author": "Stefan Penner <stefan.penner@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stefanpenner/capture-exit/issues"
+  },
+  "homepage": "https://github.com/stefanpenner/capture-exit#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.1.2"
+  }
+}
