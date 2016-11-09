@@ -30,7 +30,7 @@ module.exports.captureExit = function() {
 
   process.exit = function(code) {
     lastTime = module.exports._flush(lastTime, code)
-      .finally(function() {
+      .then(function() {
         exit.call(process, code);
       })
       .catch(function(error) {
