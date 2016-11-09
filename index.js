@@ -35,7 +35,7 @@ module.exports.captureExit = function() {
       })
       .catch(function(error) {
         console.error(error);
-        exit.apply(process, 1);
+        exit.call(process, 1);
       });
   };
 };
