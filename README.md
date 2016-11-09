@@ -1,5 +1,8 @@
 # capture-exit
 
+[![Build status](https://ci.appveyor.com/api/projects/status/8044m918rwic8b9n/branch/master?svg=true)](https://ci.appveyor.com/project/embercli/capture-exit/branch/master)
+[![Build Status](https://travis-ci.org/stefanpenner/capture-exit.svg?branch=master)](https://travis-ci.org/stefanpenner/capture-exit)
+
 Allow cooprative async exit handlers, we unfortunately must hijack
 process.exit.
 
