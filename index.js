@@ -4,7 +4,7 @@ var RSVP = require('rsvp');
 var lastTime;
 
 /*
- * To allow cooprative async exit handlers, we unfortunately must hijack
+ * To allow cooperative async exit handlers, we unfortunately must hijack
  * process.exit.
  *
  * It allows a handler to ensure exit, without that exit handler impeding other
