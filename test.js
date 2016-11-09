@@ -20,7 +20,7 @@ describe('capture-exit', function() {
       expect(process.exit, 'ensure we remain in a correct state').to.eql(originalExit);
     });
 
-    it('does nothing if no exit has yet been captured', function() {
+    it('restores the original exit', function() {
       exit.captureExit();
       expect(process.exit, 'ensure we have captured exit').to.not.eql(originalExit);
       exit.releaseExit();
