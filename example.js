@@ -1,14 +1,14 @@
 // remove the next line, and "cleanup" prints.
 //
 
-var exit = require('./')
+var exit = require('./');
 exit.captureExit();
 require('ora')('Loading unicorns').start().stop();
 
 exit.onExit(function() {
-  console.log('wat')
+  console.log('wat');
   return new Promise(function(resolve) {
-    console.log('waiting')
+    console.log('waiting');
     setTimeout(function() {
       console.log('complete!');
     }, 1000);
