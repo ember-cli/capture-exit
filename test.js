@@ -1,7 +1,8 @@
 var expect = require('chai').expect;
-var exit = require('./');
-var originalExit = process.exit; // keep this around for good measure.
 var RSVP = require('rsvp');
+
+var originalExit = process.exit; // keep this around for good measure.
+var exit = require('./');
 
 describe('capture-exit', function() {
   beforeEach(function() {
