@@ -75,12 +75,12 @@ describe('capture-exit', function() {
         return new RSVP.Promise(function(resolve, reject) {
           setTimeout(function() {
             try {
-            deferred.resolve();
+              deferred.resolve();
 
-            resolve(deferred.promise.then(function() {
-              expect(onExitWasCalled).to.equal(1);
-            }));
-            } catch(e) {
+              resolve(deferred.promise.then(function() {
+                expect(onExitWasCalled).to.equal(1);
+              }));
+            } catch (e) {
               reject(e);
             }
           }, 100);
@@ -106,6 +106,7 @@ describe('capture-exit', function() {
         });
       });
     });
+
     it('does not subscribe duplicates', function() {
       var didExit = 0;
       function foo() {
@@ -131,7 +132,7 @@ describe('capture-exit', function() {
         didExit++;
       }
       function bar() {
-         didExitBar++;
+        didExitBar++;
       }
       exit.onExit(foo);
       exit.onExit(bar);
@@ -150,7 +151,7 @@ describe('capture-exit', function() {
         didExit++;
       }
       function bar() {
-         didExitBar++;
+        didExitBar++;
       }
       exit.onExit(foo);
       exit.onExit(bar);
