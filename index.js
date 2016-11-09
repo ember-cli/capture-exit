@@ -28,11 +28,9 @@ module.exports.captureExit = function() {
   exit = process.exit;
 
   process.exit = function(code) {
-    var args = arguments;
-
     lastTime = module.exports._flush(lastTime, code)
       .finally(function() {
-        exit.apply(process, args);
+        exit.call(process, code);
       })
       .catch(function(error) {
         console.error(error);
@@ -42,13 +40,13 @@ module.exports.captureExit = function() {
 };
 
 module.exports._handlers = handlers;
-module.exports._flush = function(lastTime, args) {
+module.exports._flush = function(lastTime, code) {
   var work = handlers.splice(0, handlers.length);
 
   return RSVP.Promise.resolve(lastTime).
     then(function() {
       return RSVP.map(work, function(handler) {
-        return handler.apply(null, args);
+        return handler.call(null, code);
       });
     });
 };

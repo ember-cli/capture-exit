@@ -1,6 +1,8 @@
 var expect = require('chai').expect;
 var exit = require('./');
 var originalExit = process.exit; // keep this around for good measure.
+var RSVP = require('rsvp');
+
 describe('capture-exit', function() {
   beforeEach(function() {
     expect(process.exit, 'ensure we start in a correct state').to.eql(originalExit);
@@ -46,6 +48,46 @@ describe('capture-exit', function() {
       expect(process.exit, 'ensure we have replaced').to.not.eql(differentExit);
       exit.releaseExit();
       expect(process.exit, 'we have correctly restored the right exit').to.eql(differentExit);
+    });
+
+    describe('integration', function() {
+      it('works', function() {
+        var exitWasCalled = 0;
+        var onExitWasCalled = 0;
+        process.exit = function stubExit(code) {
+          exitWasCalled++;
+          expect(code).to.eql('the expected code');
+        };
+
+        var deferred;
+        exit.captureExit();
+        exit.onExit(function() {
+          onExitWasCalled++;
+          deferred = RSVP.defer();
+          return deferred.promise;
+        });
+
+        process.exit('the expected code');
+
+        expect(exitWasCalled).to.eql(0);
+        expect(onExitWasCalled).to.eql(0);
+
+        return new RSVP.Promise(function(resolve, reject) {
+          setTimeout(function() {
+            try {
+            deferred.resolve();
+
+            resolve(deferred.promise.then(function() {
+              expect(onExitWasCalled).to.eql(1);
+            }));
+            } catch(e) {
+              reject(e);
+            }
+          }, 100);
+        }).finally(function() {
+          expect(onExitWasCalled).to.eql(1);
+        });
+      });
     });
   });
 
