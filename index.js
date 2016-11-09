@@ -13,6 +13,13 @@ var lastTime;
  * for example, see: https://github.com/sindresorhus/ora/issues/27
  *
  */
+module.exports.releaseExit = function() {
+  if (exit) {
+    process.exit = exit;
+    exit = null;
+  }
+};
+
 module.exports.captureExit = function() {
   if (exit) {
     // already captured, no need to do more work

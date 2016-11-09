@@ -1,9 +1,52 @@
 var expect = require('chai').expect;
 var exit = require('./');
-
+var originalExit = process.exit; // keep this around for good measure.
 describe('capture-exit', function() {
-  describe('.captureExit', function() {
+  beforeEach(function() {
+    expect(process.exit, 'ensure we start in a correct state').to.eql(originalExit);
+  });
 
+  afterEach(function() {
+    // always restore, incase we have bugs in our code while developing
+    process.exit = originalExit;
+  });
+
+  describe('.releaseExit', function() {
+    it('does nothing if no exit has yet been captured', function() {
+      exit.releaseExit();
+      expect(process.exit, 'ensure we remain in a correct state').to.eql(originalExit);
+    });
+
+    it('does nothing if no exit has yet been captured', function() {
+      exit.captureExit();
+      expect(process.exit, 'ensure we have captured exit').to.not.eql(originalExit);
+      exit.releaseExit();
+      expect(process.exit, 'ensure we remain in a correct state').to.eql(originalExit);
+      exit.releaseExit();
+      expect(process.exit, 'ensure we still remain in a correct state').to.eql(originalExit);
+    });
+  });
+
+  describe('.captureExit', function() {
+    afterEach(function() {
+      // always restore, incase we have bugs in our code while developing
+      process.exit = originalExit;
+      exit.releaseExit();
+    });
+
+    it('replace existing exit', function() {
+      exit.captureExit();
+      expect(process.exit, 'ensure we have replaced').to.not.eql(originalExit);
+    });
+
+    it('replace existing but foreign exit', function() {
+      var differentExit = process.exit = function() { };
+      exit.captureExit();
+      expect(process.exit, 'ensure we have replaced').to.not.eql(originalExit);
+      expect(process.exit, 'ensure we have replaced').to.not.eql(differentExit);
+      exit.releaseExit();
+      expect(process.exit, 'we have correctly restored the right exit').to.eql(differentExit);
+    });
   });
 
   describe('.onExit', function() {
