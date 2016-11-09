@@ -1,6 +1,6 @@
 var exit;
 var handlers = [];
-var RSVP = require('RSVP');
+var RSVP = require('rsvp');
 var lastTime;
 
 /*
