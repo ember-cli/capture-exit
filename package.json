@@ -20,5 +20,8 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^3.1.2"
+  },
+  "dependencies": {
+    "rsvp": "^3.3.3"
   }
 }
