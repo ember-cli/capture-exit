@@ -33,7 +33,6 @@ describe('capture-exit', function() {
   describe('.captureExit', function() {
     afterEach(function() {
       // always restore, in case we have bugs in our code while developing
-      process.exit = originalExit;
       exit.releaseExit();
     });
 
