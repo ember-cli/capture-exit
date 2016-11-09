@@ -72,18 +72,12 @@ describe('capture-exit', function() {
         expect(exitWasCalled).to.equal(0);
         expect(onExitWasCalled).to.equal(0);
 
-        return new RSVP.Promise(function(resolve, reject) {
-          setTimeout(function() {
-            try {
-              deferred.resolve();
+        return delay(100).then(function() {
+          deferred.resolve();
 
-              resolve(deferred.promise.then(function() {
-                expect(onExitWasCalled).to.equal(1);
-              }));
-            } catch (e) {
-              reject(e);
-            }
-          }, 100);
+          return deferred.promise.then(function() {
+            expect(onExitWasCalled).to.equal(1);
+          });
         }).finally(function() {
           expect(onExitWasCalled).to.equal(1);
         });
@@ -165,3 +159,9 @@ describe('capture-exit', function() {
     });
   });
 });
+
+function delay(milliseconds) {
+  return new RSVP.Promise(function(resolve) {
+    setTimeout(resolve, milliseconds);
+  });
+}
