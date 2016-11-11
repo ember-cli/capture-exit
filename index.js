@@ -1,10 +1,11 @@
+var RSVP = require('rsvp');
+
 var exit;
 var handlers = [];
-var RSVP = require('rsvp');
 var lastTime;
 
 /*
- * To allow cooprative async exit handlers, we unfortunately must hijack
+ * To allow cooperative async exit handlers, we unfortunately must hijack
  * process.exit.
  *
  * It allows a handler to ensure exit, without that exit handler impeding other
@@ -29,12 +30,12 @@ module.exports.captureExit = function() {
 
   process.exit = function(code) {
     lastTime = module.exports._flush(lastTime, code)
-      .finally(function() {
+      .then(function() {
         exit.call(process, code);
       })
       .catch(function(error) {
         console.error(error);
-        exit.apply(process, 1);
+        exit.call(process, 1);
       });
   };
 };
@@ -45,9 +46,9 @@ module.exports._flush = function(lastTime, code) {
 
   return RSVP.Promise.resolve(lastTime).
     then(function() {
-      return RSVP.map(work, function(handler) {
+      return RSVP.Promise.all(work.map(function(handler) {
         return handler.call(null, code);
-      });
+      }));
     });
 };
 
