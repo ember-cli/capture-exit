@@ -29,11 +29,15 @@ module.exports.captureExit = function() {
   exit = process.exit;
 
   process.exit = function(code) {
-    lastTime = module.exports._flush(lastTime, code)
+    var own = lastTime = module.exports._flush(lastTime, code)
       .then(function() {
+        // if another chain has started, let it exit
+        if (own !== lastTime) { return; }
         exit.call(process, code);
       })
       .catch(function(error) {
+        // if another chain has started, let it exit
+        if (own !== lastTime) { return; }
         console.error(error);
         exit.call(process, 1);
       });

@@ -51,7 +51,7 @@ describe('capture-exit', function() {
     });
 
     describe('integration', function() {
-      it('works', function() {
+      it('works (simply)', function() {
         var exitWasCalled = 0;
         var onExitWasCalled = 0;
         process.exit = function stubExit(code) {
@@ -67,6 +67,39 @@ describe('capture-exit', function() {
           return deferred.promise;
         });
 
+        process.exit('the expected code');
+
+        expect(exitWasCalled).to.equal(0);
+        expect(onExitWasCalled).to.equal(0);
+
+        return delay(100).then(function() {
+          deferred.resolve();
+
+          return deferred.promise.then(function() {
+            expect(onExitWasCalled).to.equal(1);
+          });
+        }).finally(function() {
+          expect(onExitWasCalled).to.equal(1);
+        });
+      });
+
+      it('works (multiple exists)', function() {
+        var exitWasCalled = 0;
+        var onExitWasCalled = 0;
+        process.exit = function stubExit(code) {
+          exitWasCalled++;
+          expect(code).to.equal('the expected code');
+        };
+
+        var deferred;
+        exit.captureExit();
+        exit.onExit(function() {
+          onExitWasCalled++;
+          deferred = RSVP.defer();
+          return deferred.promise;
+        });
+
+        process.exit('NOT the expected code');
         process.exit('the expected code');
 
         expect(exitWasCalled).to.equal(0);
