@@ -6,6 +6,7 @@ var exit = require('./');
 
 describe('capture-exit', function() {
   beforeEach(function() {
+    exit.releaseExit();
     expect(process.exit, 'ensure we start in a correct state').to.equal(originalExit);
   });
 
@@ -120,6 +121,7 @@ describe('capture-exit', function() {
 
   describe('.onExit', function() {
     it('subscribes', function() {
+      exit.captureExit();
       var didExit = 0;
       function foo() {
         didExit++;
@@ -135,6 +137,7 @@ describe('capture-exit', function() {
     });
 
     it('does not subscribe duplicates', function() {
+      exit.captureExit();
       var didExit = 0;
       function foo() {
         didExit++;
@@ -149,10 +152,18 @@ describe('capture-exit', function() {
         });
       });
     });
+
+    it('throws if exit is not captured', function() {
+      expect(function () {
+        exit.onExit(function () { });
+      }).to.throw('Cannot install handler when exit is not captured.  Call `captureExit()` first');
+    });
   });
 
   describe('.offExit', function() {
     it('unsubscribes', function() {
+      exit.captureExit();
+
       var didExit = 0;
       var didExitBar = 0;
       function foo() {
@@ -172,6 +183,8 @@ describe('capture-exit', function() {
     });
 
     it('does not unsubscribe duplicates', function() {
+      exit.captureExit();
+
       var didExit = 0;
       var didExitBar = 0;
       function foo() {

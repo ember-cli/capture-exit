@@ -57,6 +57,9 @@ module.exports._flush = function(lastTime, code) {
 };
 
 module.exports.onExit = function(cb) {
+  if (!exit) {
+    throw new Error('Cannot install handler when exit is not captured.  Call `captureExit()` first');
+  }
   var index = handlers.indexOf(cb);
 
   if (index > -1) { return; }
