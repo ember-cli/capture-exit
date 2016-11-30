@@ -3,6 +3,7 @@ var RSVP = require('rsvp');
 
 var originalExit = process.exit; // keep this around for good measure.
 var exit = require('./');
+var childProcess = require('child_process');
 
 describe('capture-exit', function() {
   beforeEach(function() {
@@ -203,6 +204,29 @@ describe('capture-exit', function() {
         expect(didExitBar).to.equal(1);
       });
     });
+  });
+});
+
+describe('natural exit', function() {
+  it('runs handlers on a natural exit', function() {
+    var output = childProcess.execSync('node test-natural-exit-subprocess.js');
+    expect(output+'').to.include('onExit');
+    expect(output+'').to.include('exit');
+  });
+
+  it('exits with error code if an on exit handler calls process.exit with code', function() {
+    var succeeded = false;
+    try {
+      var output = childProcess.execSync('node test-natural-exit-subprocess-error.js');
+      succeeded = true;
+    } catch(e) {
+      expect(e.output+'').to.include('onExit');
+      expect(e.output+'').to.include('exit');
+    }
+
+    if (succeeded) {
+      throw new Error('Unexpected zero exit status for process.exit(1)');
+    }
   });
 });
 

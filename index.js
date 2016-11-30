@@ -4,6 +4,12 @@ var exit;
 var handlers = [];
 var lastTime;
 
+process.on('beforeExit', function () {
+  if (handlers.length === 0) { return; }
+
+  return module.exports._flush();
+});
+
 /*
  * To allow cooperative async exit handlers, we unfortunately must hijack
  * process.exit.
@@ -29,6 +35,25 @@ module.exports.captureExit = function() {
   exit = process.exit;
 
   process.exit = function(code) {
+    if (handlers.length === 0 && lastTime === undefined) {
+      // synchronously exit.
+      //
+      // We do this brecause either
+      //
+      //  1.  The process exited due to a call to `process.exit` but we have no
+      //      async work to do because no handlers had been attached.  It
+      //      doesn't really matter whether we take this branch or not in this
+      //      case.
+      //
+      //  2.  The process exited naturally.  We did our async work during
+      //      `beforeExit` and are in this function because someone else has
+      //      called `process.exit` during an `on('exit')` hook.  The only way
+      //      for us to preserve the exit code in this case is to exit
+      //      synchronously.
+      //
+      return exit.call(process, code);
+    }
+
     var own = lastTime = module.exports._flush(lastTime, code)
       .then(function() {
         // if another chain has started, let it exit
