@@ -154,6 +154,27 @@ describe('capture-exit', function() {
         exit.onExit(function () { });
       }).to.throw('Cannot install handler when exit is not captured.  Call `captureExit()` first');
     });
+
+    it('throws if an exit is already happening', function() {
+      return new Promise(function (resolve, reject) {
+        process.exit = function doNotReallyExit() { }
+        exit.captureExit();
+        function addHandler() {
+          try {
+            expect(function () {
+              exit.onExit(function () { console.log("it's too late!"); });
+            }).to.throw('Cannot install handler while `onExit` handlers are running.');
+          } catch(e) {
+            reject(e);
+          }
+
+          resolve();
+        }
+        exit.onExit(addHandler);
+
+        process.exit(2);
+      });
+    });
   });
 
   describe('.offExit', function() {

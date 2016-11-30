@@ -109,6 +109,9 @@ module.exports.onExit = function(cb) {
   if (!exit) {
     throw new Error('Cannot install handler when exit is not captured.  Call `captureExit()` first');
   }
+  if (isExiting) {
+    throw new Error('Cannot install handler while `onExit` handlers are running.');
+  }
   var index = handlers.indexOf(cb);
 
   if (index > -1) { return; }
