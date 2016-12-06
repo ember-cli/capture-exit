@@ -80,24 +80,34 @@ describe('capture-exit', function() {
         });
       });
 
-      it('works (multiple exists)', function() {
+      it('works (multiple exits)', function() {
         var exitWasCalled = 0;
         var onExitWasCalled = 0;
+        var deferred;
+        var lastDeferred = RSVP.defer();
+
         process.exit = function stubExit(code) {
           exitWasCalled++;
-          expect(code).to.equal('the expected code');
+
+          try {
+            expect(code).to.equal('the expected code');
+            lastDeferred.resolve();
+          } catch(e) {
+            lastDeferred.reject(e);
+          }
+
         };
 
-        var deferred;
         exit.captureExit();
-        exit.onExit(function() {
+        exit.onExit(function(code) {
           onExitWasCalled++;
           deferred = RSVP.defer();
+          expect(code).to.equal('the expected code');
           return deferred.promise;
         });
 
-        process.exit('NOT the expected code');
         process.exit('the expected code');
+        process.exit('NOT the expected code');
 
         expect(exitWasCalled).to.equal(0);
         expect(onExitWasCalled).to.equal(0);
@@ -110,6 +120,53 @@ describe('capture-exit', function() {
           });
         }).finally(function() {
           expect(onExitWasCalled).to.equal(1);
+
+          return lastDeferred.promise;
+        });
+      });
+
+      it('exits with 1 if a prior exit handler throws', function() {
+        var deferred;
+        var lastDeferred = RSVP.defer();
+        var exitWasCalled = 0;
+        var onExitWasCalled = 0;
+
+        process.exit = function stubExit(code) {
+          exitWasCalled++;
+
+          try {
+            expect(code).to.equal(1);
+            lastDeferred.resolve();
+          } catch(e) {
+            lastDeferred.reject(e);
+          }
+
+        };
+
+        exit.captureExit();
+        exit.onExit(function(code) {
+          onExitWasCalled++;
+          deferred = RSVP.defer();
+          throw new Error('bad things are bad');
+        });
+
+        process.exit('NOT the expected code');
+        process.exit('NOT the expected code');
+
+        expect(exitWasCalled).to.equal(0);
+        expect(onExitWasCalled).to.equal(0);
+
+        return delay(100).then(function() {
+          deferred.resolve();
+
+          return deferred.promise.then(function() {
+            expect(onExitWasCalled).to.equal(1);
+          });
+        }).finally(function() {
+          expect(onExitWasCalled).to.equal(1);
+          return lastDeferred.promise;
+        }).finally(function () {
+          expect(exitWasCalled).to.equal(1);
         });
       });
     });
