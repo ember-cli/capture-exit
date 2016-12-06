@@ -3,15 +3,16 @@ var RSVP = require('rsvp');
 
 var originalExit = process.exit; // keep this around for good measure.
 var exit = require('./');
+var childProcess = require('child_process');
 
 describe('capture-exit', function() {
   beforeEach(function() {
-    exit.releaseExit();
     expect(process.exit, 'ensure we start in a correct state').to.equal(originalExit);
   });
 
   afterEach(function() {
     // always restore, in case we have bugs in our code while developing
+    exit._reset();
     process.exit = originalExit;
   });
 
@@ -32,11 +33,6 @@ describe('capture-exit', function() {
   });
 
   describe('.captureExit', function() {
-    afterEach(function() {
-      // always restore, in case we have bugs in our code while developing
-      exit.releaseExit();
-    });
-
     it('replace existing exit', function() {
       exit.captureExit();
       expect(process.exit, 'ensure we have replaced').to.not.equal(originalExit);
@@ -158,6 +154,27 @@ describe('capture-exit', function() {
         exit.onExit(function () { });
       }).to.throw('Cannot install handler when exit is not captured.  Call `captureExit()` first');
     });
+
+    it('throws if an exit is already happening', function() {
+      return new Promise(function (resolve, reject) {
+        process.exit = function doNotReallyExit() { }
+        exit.captureExit();
+        function addHandler() {
+          try {
+            expect(function () {
+              exit.onExit(function () { console.log("it's too late!"); });
+            }).to.throw('Cannot install handler while `onExit` handlers are running.');
+          } catch(e) {
+            reject(e);
+          }
+
+          resolve();
+        }
+        exit.onExit(addHandler);
+
+        process.exit(2);
+      });
+    });
   });
 
   describe('.offExit', function() {
@@ -203,6 +220,46 @@ describe('capture-exit', function() {
         expect(didExitBar).to.equal(1);
       });
     });
+  });
+});
+
+describe('natural exit', function() {
+  it('runs handlers on a natural exit', function() {
+    var output = childProcess.execSync('node test-natural-exit-subprocess.js');
+    expect(output+'').to.include('onExit');
+    expect(output+'').to.include('exit');
+  });
+
+  it("exits with error code if a process.on('exit') handler calls process.exit with code", function() {
+    var succeeded = false;
+    try {
+      var output = childProcess.execSync('node test-natural-exit-subprocess-error.js');
+      succeeded = true;
+    } catch(e) {
+      expect(e.output+'').to.include('onExit');
+      expect(e.output+'').to.include('exit');
+    }
+
+    if (succeeded) {
+      throw new Error('Unexpected zero exit status for process.exit(1)');
+    }
+  });
+
+
+  it("exits with error code if a captureExit.onExit handler calls process.exit with code", function() {
+    var succeeded = false;
+    try {
+      var output = childProcess.execSync('node test-natural-exit-subprocess-error-exit-from-captures-on-exit.js');
+      succeeded = true;
+    } catch(e) {
+      expect(e.output+'').to.include('onExit');
+      expect(e.output+'').to.include('onExit2');
+      expect(e.output+'').to.include('exit');
+    }
+
+    if (succeeded) {
+      throw new Error('Unexpected zero exit status for process.exit(1)');
+    }
   });
 });
 
