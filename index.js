@@ -50,6 +50,8 @@ module.exports.releaseExit = function() {
   }
 };
 
+var firstExitCode;
+
 module.exports.captureExit = function() {
   if (exit) {
     // already captured, no need to do more work
@@ -77,16 +79,20 @@ module.exports.captureExit = function() {
       return exit.call(process, code);
     }
 
-    var own = lastTime = module.exports._flush(lastTime, code)
+    if (firstExitCode === undefined) {
+      firstExitCode = code;
+    }
+    var own = lastTime = module.exports._flush(lastTime, firstExitCode)
       .then(function() {
         // if another chain has started, let it exit
         if (own !== lastTime) { return; }
-        exit.call(process, code);
+        exit.call(process, firstExitCode);
       })
       .catch(function(error) {
         // if another chain has started, let it exit
-        if (own !== lastTime) { return; }
-        console.error(error);
+        if (own !== lastTime) {
+          throw error;
+        }
         exit.call(process, 1);
       });
   };
