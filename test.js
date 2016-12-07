@@ -4,6 +4,7 @@ var RSVP = require('rsvp');
 var originalExit = process.exit; // keep this around for good measure.
 var exit = require('./');
 var childProcess = require('child_process');
+var execa = require('execa');
 
 describe('capture-exit', function() {
   beforeEach(function() {
@@ -317,6 +318,14 @@ describe('natural exit', function() {
     if (succeeded) {
       throw new Error('Unexpected zero exit status for process.exit(1)');
     }
+  });
+
+  it("status code from exit within procces.on('exit') handler trumps prior process.exit's", function() {
+    return execa.shell('node process-exit-during-final-exit-subprocess.js').then(function(a) {
+      expect(true, 'should not fulfill').to.eql(false);
+    }, function(reason) {
+      expect(reason.code).to.eql(1);
+    });
   });
 });
 
