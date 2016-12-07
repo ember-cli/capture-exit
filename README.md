@@ -10,3 +10,5 @@ It allows a handler to ensure exit, without that exit handler impeding other
 similar handlers
 
 for example, see: [sindresorhus/ora#27](https://github.com/sindresorhus/ora/issues/27)
+
+Differences between `process.on('exit')` and `captureExit.onExit(...)` => https://github.com/ember-cli/capture-exit/issues/12
