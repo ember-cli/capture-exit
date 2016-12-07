@@ -7,6 +7,9 @@
     "test": "mocha test",
     "test:debug": "mocha debug test"
   },
+  "files": [
+    "index.js"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/stefanpenner/capture-exit.git"
