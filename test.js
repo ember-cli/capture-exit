@@ -5,13 +5,14 @@ var originalExit = process.exit; // keep this around for good measure.
 var exit = require('./');
 var childProcess = require('child_process');
 var execa = require('execa');
-
+var error = console.error;
 describe('capture-exit', function() {
   beforeEach(function() {
     expect(process.exit, 'ensure we start in a correct state').to.equal(originalExit);
   });
 
   afterEach(function() {
+    console.error = error; // always restore;
     // always restore, in case we have bugs in our code while developing
     exit._reset();
     process.exit = originalExit;
@@ -144,11 +145,18 @@ describe('capture-exit', function() {
 
         };
 
+        var didConsoleError = 0;
+        var badThingsAreBad = new Error('bad things are bad');
+        console.error = function(theError) {
+          didConsoleError++;
+          expect(theError).to.equal(badThingsAreBad);
+        };
+
         exit.captureExit();
         exit.onExit(function(code) {
           onExitWasCalled++;
           deferred = RSVP.defer();
-          throw new Error('bad things are bad');
+          throw badThingsAreBad;
         });
 
         process.exit('NOT the expected code');
@@ -158,6 +166,7 @@ describe('capture-exit', function() {
         expect(onExitWasCalled).to.equal(0);
 
         return delay(100).then(function() {
+          expect(didConsoleError).to.eql(1);
           deferred.resolve();
 
           return deferred.promise.then(function() {
