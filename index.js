@@ -93,6 +93,7 @@ module.exports.captureExit = function() {
         if (own !== lastTime) {
           throw error;
         }
+        console.error(error);
         exit.call(process, 1);
       });
   };
