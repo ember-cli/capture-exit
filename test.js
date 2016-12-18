@@ -288,6 +288,29 @@ describe('capture-exit', function() {
       });
     });
   });
+
+  describe('handlerCount', function() {
+    it('returns the current handler length', function() {
+      exit.captureExit();
+
+      expect(exit.listenerCount()).to.equal(0);
+
+      function foo() {}
+      function bar() {}
+
+      exit.onExit(foo);
+      expect(exit.listenerCount()).to.equal(1);
+
+      exit.onExit(bar);
+      expect(exit.listenerCount()).to.equal(2);
+
+      exit.offExit(foo);
+      expect(exit.listenerCount()).to.equal(1);
+
+      exit.offExit(bar);
+      expect(exit.listenerCount()).to.equal(0);
+    });
+  });
 });
 
 describe('natural exit', function() {

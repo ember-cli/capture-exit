@@ -136,3 +136,7 @@ module.exports.offExit = function(cb) {
 module.exports.exit  = function() {
   exit.apply(process, arguments);
 };
+
+module.exports.listenerCount = function() {
+  return handlers.length;
+};
