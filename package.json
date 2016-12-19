@@ -1,6 +1,6 @@
 {
   "name": "capture-exit",
-  "version": "1.0.7",
+  "version": "1.1.0",
   "description": "safely cleanup in signal handlers",
   "main": "index.js",
   "scripts": {
