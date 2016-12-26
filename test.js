@@ -183,6 +183,42 @@ describe('capture-exit', function() {
   });
 
   describe('.onExit', function() {
+    var didExit;
+
+    function handler(options) {
+      options = options || {};
+      var code = options.code;
+      var timeout = options.timeout;
+
+      return function() {
+        // sync
+        if (!timeout) {
+          didExit++;
+          if (code) {
+            return RSVP.Promise.reject(code);
+          }
+
+          return;
+        }
+
+        // async if timeout specified
+        return new RSVP.Promise(function(resolve, reject) {
+          setTimeout(function() {
+            didExit++;
+            if (!code) {
+              resolve();
+            } else {
+              reject(code);
+            }
+          }, timeout);
+        });
+      }
+    };
+
+    beforeEach(function() {
+      didExit = 0;
+    });
+
     it('subscribes', function() {
       exit.captureExit();
       var didExit = 0;
@@ -196,6 +232,41 @@ describe('capture-exit', function() {
         return exit._flush().then(function() {
           expect(didExit).to.equal(0);
         });
+      });
+    });
+
+    it('waits until all handlers are settled', function() {
+      exit.captureExit();
+      var didExit = 0;
+
+      function firstHandler() {
+        return new RSVP.Promise(function(resolve) {
+          setTimeout(function() {
+            didExit++;
+            resolve();
+          }, 10);
+        });
+      }
+
+      function secondHandler() {
+        didExit++;
+        return RSVP.Promise.reject(1);
+      }
+
+      function thirdHandler() {
+        return new RSVP.Promise(function(resolve, reject) {
+          setTimeout(function() {
+            didExit++;
+            reject();
+          }, 20);
+        });
+      }
+
+      exit.onExit(firstHandler);
+      exit.onExit(secondHandler);
+      exit.onExit(thirdHandler);
+      return exit._flush().finally(function() {
+        expect(didExit).to.equal(3);
       });
     });
 
@@ -335,6 +406,21 @@ describe('natural exit', function() {
     }
   });
 
+  it("exits with error code after all handlers settled", function() {
+    var succeeded = false;
+    try {
+      var output = childProcess.execSync('node test-natural-with-promises.js');
+      succeeded = true;
+    } catch(e) {
+      expect(e.output+'').to.include('resolved-exit');
+      expect(e.output+'').to.include('rejected-exit');
+      expect(e.output+'').to.include('exceptional-exit');
+    }
+
+    if (succeeded) {
+      throw new Error('Unexpected zero exit status for process.exit(1)');
+    }
+  });
 
   it("exits with error code if a captureExit.onExit handler calls process.exit with code", function() {
     var succeeded = false;
