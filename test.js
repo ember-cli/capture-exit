@@ -221,7 +221,6 @@ describe('capture-exit', function() {
 
     it('subscribes', function() {
       exit.captureExit();
-      var didExit = 0;
       function foo() {
         didExit++;
       }
@@ -235,44 +234,34 @@ describe('capture-exit', function() {
       });
     });
 
-    it('waits until all handlers are settled', function() {
+    it('throws an exit code of the first registered handler which rejects', function() {
       exit.captureExit();
-      var didExit = 0;
 
-      function firstHandler() {
-        return new RSVP.Promise(function(resolve) {
-          setTimeout(function() {
-            didExit++;
-            resolve();
-          }, 10);
+      exit.onExit(handler({
+        timeout: 10
+      }));
+
+      exit.onExit(handler({
+        code: 400,
+        timeout: 20
+      }));
+
+      exit.onExit(handler({
+        code: 503
+      }));
+
+      return exit._flush()
+        .then(function() {
+          throw new Error('Promise should be rejected');
+        })
+        .catch(function(reason) {
+          expect(reason).to.equal(400);
+          expect(didExit).to.equal(3);
         });
-      }
-
-      function secondHandler() {
-        didExit++;
-        return RSVP.Promise.reject(1);
-      }
-
-      function thirdHandler() {
-        return new RSVP.Promise(function(resolve, reject) {
-          setTimeout(function() {
-            didExit++;
-            reject();
-          }, 20);
-        });
-      }
-
-      exit.onExit(firstHandler);
-      exit.onExit(secondHandler);
-      exit.onExit(thirdHandler);
-      return exit._flush().finally(function() {
-        expect(didExit).to.equal(3);
-      });
     });
 
     it('does not subscribe duplicates', function() {
       exit.captureExit();
-      var didExit = 0;
       function foo() {
         didExit++;
       }
@@ -399,22 +388,6 @@ describe('natural exit', function() {
     } catch(e) {
       expect(e.output+'').to.include('onExit');
       expect(e.output+'').to.include('exit');
-    }
-
-    if (succeeded) {
-      throw new Error('Unexpected zero exit status for process.exit(1)');
-    }
-  });
-
-  it("exits with error code after all handlers settled", function() {
-    var succeeded = false;
-    try {
-      var output = childProcess.execSync('node test-natural-with-promises.js');
-      succeeded = true;
-    } catch(e) {
-      expect(e.output+'').to.include('resolved-exit');
-      expect(e.output+'').to.include('rejected-exit');
-      expect(e.output+'').to.include('exceptional-exit');
     }
 
     if (succeeded) {

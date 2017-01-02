@@ -108,7 +108,15 @@ module.exports._flush = function(lastTime, code) {
     then(function() {
       return RSVP.allSettled(work.map(function(handler) {
         return handler.call(null, code);
-      }));
+      })).then(function(results) {
+        var firstRejectedHandler = results.filter(function(p) {
+          return p.state === 'rejected';
+        })[0];
+
+        if (firstRejectedHandler) {
+          throw firstRejectedHandler.reason;
+        }
+      });
     });
 };
 
