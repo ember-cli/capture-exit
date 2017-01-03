@@ -250,13 +250,17 @@ describe('capture-exit', function() {
         code: 503
       }));
 
+      var resolved = false;
       return exit._flush()
         .then(function() {
-          throw new Error('Promise should be rejected');
+          resolved = true;
         })
         .catch(function(reason) {
           expect(reason).to.equal(400);
           expect(didExit).to.equal(3);
+        })
+        .finally(function() {
+          expect(resolved).to.equal(false);
         });
     });
 
