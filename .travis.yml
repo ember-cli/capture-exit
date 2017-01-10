@@ -22,3 +22,12 @@ install:
 
 script:
   - npm run test
+
+deploy:
+  provider: npm
+  email: stefan.penner+ember-cli@gmail.com
+  api_key:
+    secure: XelwAGywZjqBYEeeiTeQ4mJwm5kT/jSnu8SM8rtq8lYRKDqFkfH1V6SP6UDTxmpErh4EIyMRIrLRCJaokG3nsue7hSjrJq3ycfcqw6WbwWJ1dcvmRTrsF7RTNPIi7T03ui1zTppmL2LL2OyCEyfd3f2aLwxf6fh/Lhy1Y69G672bdT7QzcPwPrydQHW6n7O8ri6LpRlkGua2QjsU6g10nHfgDm78O+oj3z13Ur7YBwfi/GfUHdwawZ9mIdYzOvm6uonfIeGlX0UivM3k+7p1VBeVOI3asd8P8xapziQ8/6rUypfaMQ2L87FzVfL+tD34O3TJEYjDsb5pnkEtj46Od98Mv8boVzcoIqGeSA9L3nLkLDSI46ghLIoZTNCctLN/LLmXihUGlNiErVX6AUaH3VcHh0OvSteixKkvKWuIbetwzHwqbrriabUYZXVUhIp+Z6vyLOMnbdXz4Okd7jut+4HCGRPRVZqzBDIY2nvkRbL3FBqEvaN51jga0E5jsfH5vkPHHfnw3jraYCgmhXCyiyGanSylX3rzOyxOyVDyl8/MwZ1bNBxGfFOpyCrxdWkB7rGOLexogTUAnoBK8t/Udqf/P9rpxZ0lfGs8I7A7tuzLy0vs+fwptJXfHLMHjrNCF7E/D2HsvDZiho+Vz+k8ol+4ajmLynDw8Wn4JcB6kzY=
+  on:
+    tags: true
+    repo: ember-cli/capture-exit
