@@ -31,6 +31,7 @@ module.exports._reset = function () {
   handlers = [];
   lastTime = undefined;
   isExiting = false;
+  firstExitCode = undefined;
 }
 
 /*

@@ -142,7 +142,6 @@ describe('capture-exit', function() {
           } catch(e) {
             lastDeferred.reject(e);
           }
-
         };
 
         var didConsoleError = 0;
@@ -179,6 +178,81 @@ describe('capture-exit', function() {
           expect(exitWasCalled).to.equal(1);
         });
       });
+
+      it('process.exit with an error while natural exit completes', function() {
+        var exitWasCalled = 0;
+        var onExitWasCalled = 0;
+        var exitCode;
+
+        process.exit = function stubExit(code) {
+          exitWasCalled++;
+          exitCode = code;
+        };
+
+        var deferred;
+        exit.captureExit();
+
+        exit.onExit(function() {
+          onExitWasCalled++;
+          deferred = RSVP.defer();
+          return deferred.promise;
+        });
+
+        process.exit();
+
+        return delay(10).then(function() {
+          expect(onExitWasCalled).to.equal(1);
+          process.exit('someErrorCode');
+
+          return delay(10).then(function() {
+            deferred.resolve();
+          });
+        }).then(() => {
+          return delay(0).then(function() {
+            expect(onExitWasCalled, 'exit handler invoked').to.equal(1);
+            expect(exitWasCalled, 'real exit was called once').to.equal(1);
+            expect(exitCode, 'called with an expected exit code').to.equal('someErrorCode');
+          });
+        });
+      });
+
+      it('process.exit with an error while natural exit with error code completes', function() {
+        var exitWasCalled = 0;
+        var onExitWasCalled = 0;
+        var finalExitCode;
+
+        process.exit = function stubExit(code) {
+          exitWasCalled++;
+          finalExitCode = code;
+        };
+
+        var deferred;
+        exit.captureExit();
+
+        exit.onExit(function() {
+          onExitWasCalled++;
+          deferred = RSVP.defer();
+          return deferred.promise;
+        });
+
+        process.exit('errorCode');
+
+        return delay(10).then(function() {
+          expect(onExitWasCalled).to.equal(1);
+          process.exit('an unexpected code');
+
+          return delay(10).then(function() {
+            deferred.resolve();
+          });
+        }).then(() => {
+          return delay(0).then(function() {
+            expect(onExitWasCalled, 'exit handler invoked').to.equal(1);
+            expect(exitWasCalled, 'real exit was called once').to.equal(1);
+            expect(finalExitCode, 'called with an expected exit code').to.equal('errorCode');
+          });
+        });
+      });
+
     });
   });
 
