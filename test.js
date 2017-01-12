@@ -245,7 +245,7 @@ describe('capture-exit', function() {
           return delay(10).then(function() {
             deferred.resolve();
           });
-        }).then(() => {
+        }).then(function() {
           return delay(0).then(function() {
             expect(onExitWasCalled, 'exit handler invoked').to.equal(1);
             expect(exitWasCalled, 'real exit was called once').to.equal(1);
