@@ -202,16 +202,17 @@ describe('capture-exit', function() {
 
         return delay(10).then(function() {
           expect(onExitWasCalled).to.equal(1);
-          process.exit('someErrorCode');
+          process.exit('the expected code');
+          process.exit('NOT the expected code');
 
           return delay(10).then(function() {
             deferred.resolve();
           });
-        }).then(() => {
+        }).then(function() {
           return delay(0).then(function() {
             expect(onExitWasCalled, 'exit handler invoked').to.equal(1);
             expect(exitWasCalled, 'real exit was called once').to.equal(1);
-            expect(exitCode, 'called with an expected exit code').to.equal('someErrorCode');
+            expect(exitCode, 'called with an expected exit code').to.equal('the expected code');
           });
         });
       });
@@ -235,7 +236,7 @@ describe('capture-exit', function() {
           return deferred.promise;
         });
 
-        process.exit('errorCode');
+        process.exit('the expected code');
 
         return delay(10).then(function() {
           expect(onExitWasCalled).to.equal(1);
@@ -248,7 +249,7 @@ describe('capture-exit', function() {
           return delay(0).then(function() {
             expect(onExitWasCalled, 'exit handler invoked').to.equal(1);
             expect(exitWasCalled, 'real exit was called once').to.equal(1);
-            expect(finalExitCode, 'called with an expected exit code').to.equal('errorCode');
+            expect(finalExitCode, 'called with an expected exit code').to.equal('the expected code');
           });
         });
       });
