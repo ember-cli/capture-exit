@@ -106,15 +106,17 @@ module.exports._flush = function(lastTime, code) {
 
   return RSVP.Promise.resolve(lastTime).
     then(function() {
+      var firstRejected;
       return RSVP.allSettled(work.map(function(handler) {
-        return handler.call(null, code);
+        return RSVP.resolve(handler.call(null, code)).catch(function(e) {
+          if (!firstRejected) {
+            firstRejected = e;
+          }
+          throw e;
+        });
       })).then(function(results) {
-        var firstRejectedHandler = results.filter(function(p) {
-          return p.state === 'rejected';
-        })[0];
-
-        if (firstRejectedHandler) {
-          throw firstRejectedHandler.reason;
+        if (firstRejected) {
+          throw firstRejected;
         }
       });
     });
