@@ -256,11 +256,11 @@ describe('capture-exit', function() {
           resolved = true;
         })
         .catch(function(reason) {
-          expect(reason).to.equal(400);
-          expect(didExit).to.equal(3);
+          expect(reason, 'fails with the first happened error code').to.equal(503);
+          expect(didExit, '3 exit handlers are called').to.equal(3);
         })
         .finally(function() {
-          expect(resolved).to.equal(false);
+          expect(resolved, 'should not be resolved').to.equal(false);
         });
     });
 
