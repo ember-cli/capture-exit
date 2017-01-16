@@ -107,9 +107,19 @@ module.exports._flush = function(lastTime, code) {
 
   return RSVP.Promise.resolve(lastTime).
     then(function() {
-      return RSVP.Promise.all(work.map(function(handler) {
-        return handler.call(null, code);
-      }));
+      var firstRejected;
+      return RSVP.allSettled(work.map(function(handler) {
+        return RSVP.resolve(handler.call(null, code)).catch(function(e) {
+          if (!firstRejected) {
+            firstRejected = e;
+          }
+          throw e;
+        });
+      })).then(function(results) {
+        if (firstRejected) {
+          throw firstRejected;
+        }
+      });
     });
 };
 

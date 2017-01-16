@@ -258,9 +258,44 @@ describe('capture-exit', function() {
   });
 
   describe('.onExit', function() {
+    var didExit;
+
+    function handler(options) {
+      options = options || {};
+      var code = options.code;
+      var timeout = options.timeout;
+
+      return function() {
+        // sync
+        if (!timeout) {
+          didExit++;
+          if (code) {
+            return RSVP.Promise.reject(code);
+          }
+
+          return;
+        }
+
+        // async if timeout specified
+        return new RSVP.Promise(function(resolve, reject) {
+          setTimeout(function() {
+            didExit++;
+            if (!code) {
+              resolve();
+            } else {
+              reject(code);
+            }
+          }, timeout);
+        });
+      }
+    };
+
+    beforeEach(function() {
+      didExit = 0;
+    });
+
     it('subscribes', function() {
       exit.captureExit();
-      var didExit = 0;
       function foo() {
         didExit++;
       }
@@ -274,9 +309,38 @@ describe('capture-exit', function() {
       });
     });
 
+    it('throws an exit code of the first registered handler which rejects', function() {
+      exit.captureExit();
+
+      exit.onExit(handler({
+        timeout: 10
+      }));
+
+      exit.onExit(handler({
+        code: 400,
+        timeout: 20
+      }));
+
+      exit.onExit(handler({
+        code: 503
+      }));
+
+      var resolved = false;
+      return exit._flush()
+        .then(function() {
+          resolved = true;
+        })
+        .catch(function(reason) {
+          expect(reason, 'fails with the first happened error code').to.equal(503);
+          expect(didExit, '3 exit handlers are called').to.equal(3);
+        })
+        .finally(function() {
+          expect(resolved, 'should not be resolved').to.equal(false);
+        });
+    });
+
     it('does not subscribe duplicates', function() {
       exit.captureExit();
-      var didExit = 0;
       function foo() {
         didExit++;
       }
@@ -409,7 +473,6 @@ describe('natural exit', function() {
       throw new Error('Unexpected zero exit status for process.exit(1)');
     }
   });
-
 
   it("exits with error code if a captureExit.onExit handler calls process.exit with code", function() {
     var succeeded = false;
