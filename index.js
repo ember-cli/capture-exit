@@ -27,10 +27,10 @@ process.on('beforeExit', function (code) {
 
 // This exists only for testing
 module.exports._reset = function () {
+  isExiting = false;
   module.exports.releaseExit();
   handlers = [];
   lastTime = undefined;
-  isExiting = false;
   firstExitCode = undefined;
 }
 
@@ -45,7 +45,11 @@ module.exports._reset = function () {
  *
  */
 module.exports.releaseExit = function() {
-  if (exit) {
+  // do not release exit after the first _flush has been called
+  // doing so will allow future `process.exit`'s  (during _flush)
+  // to kill the process without finishing any `captureExit.onExit`
+  // handlers
+  if (exit && !isExiting) {
     process.exit = exit;
     exit = null;
   }
