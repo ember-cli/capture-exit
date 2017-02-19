@@ -32,6 +32,34 @@ describe('capture-exit', function() {
       exit.releaseExit();
       expect(process.exit, 'ensure we still remain in a correct state').to.equal(originalExit);
     });
+
+    it('does not release exit while exiting', function() {
+      exit.captureExit();
+      expect(process.exit, 'precond - ensure we have captured exit').to.not.equal(originalExit);
+
+      return exit._flush()
+        .then(function() {
+          exit.releaseExit();
+          expect(process.exit, 'ensure we have captured exit').to.not.equal(originalExit);
+        });
+    });
+
+    it('does not allow loosing prior exit codes while flushing', function() {
+      var succeeded = false;
+      try {
+        var output = childProcess.execSync('node test-release-exit-after-process-exit.js');
+        succeeded = true;
+      } catch(e) {
+        expect(e.output+'').to.include('capturing exit');
+        expect(e.output+'').to.include('calling process.exit(1)');
+        expect(e.output+'').to.include('releasing exit');
+        expect(e.output+'').to.include('calling process.exit()');
+      }
+
+      if (succeeded) {
+        throw new Error('Unexpected zero exit status for process.exit(1)');
+      }
+    });
   });
 
   describe('.captureExit', function() {
