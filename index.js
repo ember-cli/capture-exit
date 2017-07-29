@@ -1,9 +1,11 @@
+
 var RSVP = require('rsvp');
 
 var exit;
 var handlers = [];
 var lastTime;
 var isExiting = false;
+var _process;
 
 process.on('beforeExit', function (code) {
   if (handlers.length === 0) { return; }
@@ -46,21 +48,22 @@ module.exports._reset = function () {
  */
 module.exports.releaseExit = function() {
   if (exit) {
-    process.exit = exit;
+    _process.exit = exit;
     exit = null;
   }
 };
 
 var firstExitCode;
+module.exports.captureExit = function(p) {
+  _process = p || process;
 
-module.exports.captureExit = function() {
   if (exit) {
     // already captured, no need to do more work
     return;
   }
-  exit = process.exit;
+  exit = _process.exit;
 
-  process.exit = function(code) {
+  _process.exit = function(code) {
     if (handlers.length === 0 && lastTime === undefined) {
       // synchronously exit.
       //
@@ -77,7 +80,7 @@ module.exports.captureExit = function() {
       //      for us to preserve the exit code in this case is to exit
       //      synchronously.
       //
-      return exit.call(process, code);
+      return exit.call(_process, code);
     }
 
     if (firstExitCode === undefined) {
@@ -87,7 +90,7 @@ module.exports.captureExit = function() {
       .then(function() {
         // if another chain has started, let it exit
         if (own !== lastTime) { return; }
-        exit.call(process, firstExitCode);
+        exit.call(_process, firstExitCode);
       })
       .catch(function(error) {
         // if another chain has started, let it exit
@@ -95,7 +98,7 @@ module.exports.captureExit = function() {
           throw error;
         }
         console.error(error);
-        exit.call(process, 1);
+        exit.call(_process, 1);
       });
   };
 };
@@ -145,7 +148,7 @@ module.exports.offExit = function(cb) {
 };
 
 module.exports.exit  = function() {
-  exit.apply(process, arguments);
+  exit.apply(_process, arguments);
 };
 
 module.exports.listenerCount = function() {
