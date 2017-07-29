@@ -35,6 +35,16 @@ describe('capture-exit', function() {
   });
 
   describe('.captureExit', function() {
+    it('requires an EventEmitter instance', function() {
+        expect(function() {
+          exit.captureExit();
+        }).to.throw('attempt to capture a bad process instance');
+
+        expect(function() {
+          exit.captureExit({});
+        }).to.throw('attempt to capture a bad process instance');
+    });
+
     it('replace existing exit', function() {
       exit.captureExit(process);
       expect(process.exit, 'ensure we have replaced').to.not.equal(originalExit);

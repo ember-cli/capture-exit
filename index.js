@@ -7,26 +7,6 @@ var lastTime;
 var isExiting = false;
 var _process;
 
-process.on('beforeExit', function (code) {
-  if (handlers.length === 0) { return; }
-
-  var own = lastTime = module.exports._flush(lastTime, code)
-    .finally(function () {
-      // if an onExit handler has called process.exit, do not disturb
-      // `lastTime`.
-      //
-      // Otherwise, clear `lastTime` so that we know to synchronously call the
-      // real `process.exit` with the given exit code, when our captured
-      // `process.exit` is called during a `process.on('exit')` handler
-      //
-      // This is impossible to reason about, don't feel bad.  Just look at
-      // test-natural-exit-subprocess-error.js
-      if (own === lastTime) {
-        lastTime = undefined;
-      }
-    });
-});
-
 // This exists only for testing
 module.exports._reset = function () {
   module.exports.releaseExit();
@@ -61,12 +41,14 @@ module.exports.captureExit = function(process) {
   }
 
   if (process instanceof EventEmitter === false) {
-    throw new Error('attempt to capture a bad process instance');
+    throw new TypeError('attempt to capture a bad process instance');
   }
 
   _process = process;
 
   exit = _process.exit;
+
+  _process.on('beforeExit', onBeforeExit);
 
   _process.exit = function(code) {
     if (handlers.length === 0 && lastTime === undefined) {
@@ -150,6 +132,8 @@ module.exports.offExit = function(cb) {
   if (index < 0) { return; }
 
   handlers.splice(index, 1);
+
+  _process.removeListener('beforeExit', onBeforeExit);
 };
 
 module.exports.exit  = function() {
@@ -159,3 +143,23 @@ module.exports.exit  = function() {
 module.exports.listenerCount = function() {
   return handlers.length;
 };
+
+function onBeforeExit(code) {
+  if (handlers.length === 0) { return; }
+
+  var own = lastTime = module.exports._flush(lastTime, code)
+    .finally(function () {
+      // if an onExit handler has called process.exit, do not disturb
+      // `lastTime`.
+      //
+      // Otherwise, clear `lastTime` so that we know to synchronously call the
+      // real `process.exit` with the given exit code, when our captured
+      // `process.exit` is called during a `process.on('exit')` handler
+      //
+      // This is impossible to reason about, don't feel bad.  Just look at
+      // test-natural-exit-subprocess-error.js
+      if (own === lastTime) {
+        lastTime = undefined;
+      }
+    });
+}
