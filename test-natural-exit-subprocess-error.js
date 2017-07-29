@@ -1,7 +1,7 @@
 'use strict';
 
 var capture = require('./');
-capture.captureExit();
+capture.captureExit(process);
 
 capture.onExit(function () {
   console.log('onExit');

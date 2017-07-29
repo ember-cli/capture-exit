@@ -1,29 +1,13 @@
+'use strict';
+
+const EventEmitter = require('events');
 var RSVP = require('rsvp');
 
 var exit;
 var handlers = [];
 var lastTime;
 var isExiting = false;
-
-process.on('beforeExit', function (code) {
-  if (handlers.length === 0) { return; }
-
-  var own = lastTime = module.exports._flush(lastTime, code)
-    .finally(function () {
-      // if an onExit handler has called process.exit, do not disturb
-      // `lastTime`.
-      //
-      // Otherwise, clear `lastTime` so that we know to synchronously call the
-      // real `process.exit` with the given exit code, when our captured
-      // `process.exit` is called during a `process.on('exit')` handler
-      //
-      // This is impossible to reason about, don't feel bad.  Just look at
-      // test-natural-exit-subprocess-error.js
-      if (own === lastTime) {
-        lastTime = undefined;
-      }
-    });
-});
+var _process;
 
 // This exists only for testing
 module.exports._reset = function () {
@@ -46,21 +30,29 @@ module.exports._reset = function () {
  */
 module.exports.releaseExit = function() {
   if (exit) {
-    process.exit = exit;
+    _process.exit = exit;
     exit = null;
   }
 };
 
 var firstExitCode;
-
-module.exports.captureExit = function() {
+module.exports.captureExit = function(process) {
   if (exit) {
     // already captured, no need to do more work
     return;
   }
-  exit = process.exit;
 
-  process.exit = function(code) {
+  if (process instanceof EventEmitter === false) {
+    throw new TypeError('attempt to capture a bad process instance');
+  }
+
+  _process = process;
+
+  exit = _process.exit;
+
+  _process.on('beforeExit', onBeforeExit);
+
+  _process.exit = function(code) {
     if (handlers.length === 0 && lastTime === undefined) {
       // synchronously exit.
       //
@@ -77,7 +69,7 @@ module.exports.captureExit = function() {
       //      for us to preserve the exit code in this case is to exit
       //      synchronously.
       //
-      return exit.call(process, code);
+      return exit.call(_process, code);
     }
 
     if (firstExitCode === undefined) {
@@ -87,7 +79,7 @@ module.exports.captureExit = function() {
       .then(function() {
         // if another chain has started, let it exit
         if (own !== lastTime) { return; }
-        exit.call(process, firstExitCode);
+        exit.call(_process, firstExitCode);
       })
       .catch(function(error) {
         // if another chain has started, let it exit
@@ -95,7 +87,7 @@ module.exports.captureExit = function() {
           throw error;
         }
         console.error(error);
-        exit.call(process, 1);
+        exit.call(_process, 1);
       });
   };
 };
@@ -142,12 +134,34 @@ module.exports.offExit = function(cb) {
   if (index < 0) { return; }
 
   handlers.splice(index, 1);
+
+  _process.removeListener('beforeExit', onBeforeExit);
 };
 
 module.exports.exit  = function() {
-  exit.apply(process, arguments);
+  exit.apply(_process, arguments);
 };
 
 module.exports.listenerCount = function() {
   return handlers.length;
 };
+
+function onBeforeExit(code) {
+  if (handlers.length === 0) { return; }
+
+  var own = lastTime = module.exports._flush(lastTime, code)
+    .finally(function () {
+      // if an onExit handler has called process.exit, do not disturb
+      // `lastTime`.
+      //
+      // Otherwise, clear `lastTime` so that we know to synchronously call the
+      // real `process.exit` with the given exit code, when our captured
+      // `process.exit` is called during a `process.on('exit')` handler
+      //
+      // This is impossible to reason about, don't feel bad.  Just look at
+      // test-natural-exit-subprocess-error.js
+      if (own === lastTime) {
+        lastTime = undefined;
+      }
+    });
+}
