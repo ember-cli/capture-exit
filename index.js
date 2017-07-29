@@ -1,4 +1,4 @@
-
+const EventEmitter = require('events');
 var RSVP = require('rsvp');
 
 var exit;
@@ -54,13 +54,18 @@ module.exports.releaseExit = function() {
 };
 
 var firstExitCode;
-module.exports.captureExit = function(p) {
-  _process = p || process;
-
+module.exports.captureExit = function(process) {
   if (exit) {
     // already captured, no need to do more work
     return;
   }
+
+  if (process instanceof EventEmitter === false) {
+    throw new Error('attempt to capture a bad process instance');
+  }
+
+  _process = process;
+
   exit = _process.exit;
 
   _process.exit = function(code) {

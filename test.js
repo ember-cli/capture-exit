@@ -25,7 +25,7 @@ describe('capture-exit', function() {
     });
 
     it('restores the original exit', function() {
-      exit.captureExit();
+      exit.captureExit(process);
       expect(process.exit, 'ensure we have captured exit').to.not.equal(originalExit);
       exit.releaseExit();
       expect(process.exit, 'ensure we remain in a correct state').to.equal(originalExit);
@@ -36,13 +36,13 @@ describe('capture-exit', function() {
 
   describe('.captureExit', function() {
     it('replace existing exit', function() {
-      exit.captureExit();
+      exit.captureExit(process);
       expect(process.exit, 'ensure we have replaced').to.not.equal(originalExit);
     });
 
     it('replace existing but foreign exit', function() {
       var differentExit = process.exit = function() { };
-      exit.captureExit();
+      exit.captureExit(process);
       expect(process.exit, 'ensure we have replaced').to.not.equal(originalExit);
       expect(process.exit, 'ensure we have replaced').to.not.equal(differentExit);
       exit.releaseExit();
@@ -59,7 +59,7 @@ describe('capture-exit', function() {
         };
 
         var deferred;
-        exit.captureExit();
+        exit.captureExit(process);
         exit.onExit(function() {
           onExitWasCalled++;
           deferred = RSVP.defer();
@@ -100,7 +100,7 @@ describe('capture-exit', function() {
 
         };
 
-        exit.captureExit();
+        exit.captureExit(process);
         exit.onExit(function(code) {
           onExitWasCalled++;
           deferred = RSVP.defer();
@@ -151,7 +151,7 @@ describe('capture-exit', function() {
           expect(theError).to.equal(badThingsAreBad);
         };
 
-        exit.captureExit();
+        exit.captureExit(process);
         exit.onExit(function(code) {
           onExitWasCalled++;
           deferred = RSVP.defer();
@@ -190,7 +190,7 @@ describe('capture-exit', function() {
         };
 
         var deferred;
-        exit.captureExit();
+        exit.captureExit(process);
 
         exit.onExit(function() {
           onExitWasCalled++;
@@ -228,7 +228,7 @@ describe('capture-exit', function() {
         };
 
         var deferred;
-        exit.captureExit();
+        exit.captureExit(process);
 
         exit.onExit(function() {
           onExitWasCalled++;
@@ -295,7 +295,7 @@ describe('capture-exit', function() {
     });
 
     it('subscribes', function() {
-      exit.captureExit();
+      exit.captureExit(process);
       function foo() {
         didExit++;
       }
@@ -310,7 +310,7 @@ describe('capture-exit', function() {
     });
 
     it('throws an exit code of the first registered handler which rejects', function() {
-      exit.captureExit();
+      exit.captureExit(process);
 
       exit.onExit(handler({
         timeout: 10
@@ -340,7 +340,7 @@ describe('capture-exit', function() {
     });
 
     it('does not subscribe duplicates', function() {
-      exit.captureExit();
+      exit.captureExit(process);
       function foo() {
         didExit++;
       }
@@ -364,7 +364,7 @@ describe('capture-exit', function() {
     it('throws if an exit is already happening', function() {
       return new Promise(function (resolve, reject) {
         process.exit = function doNotReallyExit() { }
-        exit.captureExit();
+        exit.captureExit(process);
         function addHandler() {
           try {
             expect(function () {
@@ -385,7 +385,7 @@ describe('capture-exit', function() {
 
   describe('.offExit', function() {
     it('unsubscribes', function() {
-      exit.captureExit();
+      exit.captureExit(process);
 
       var didExit = 0;
       var didExitBar = 0;
@@ -406,7 +406,7 @@ describe('capture-exit', function() {
     });
 
     it('does not unsubscribe duplicates', function() {
-      exit.captureExit();
+      exit.captureExit(process);
 
       var didExit = 0;
       var didExitBar = 0;
@@ -430,7 +430,7 @@ describe('capture-exit', function() {
 
   describe('handlerCount', function() {
     it('returns the current handler length', function() {
-      exit.captureExit();
+      exit.captureExit(process);
 
       expect(exit.listenerCount()).to.equal(0);
 
