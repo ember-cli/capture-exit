@@ -16,7 +16,7 @@ Differences between `process.on('exit')` and `captureExit.onExit(...)` => https:
 
 ### Installation
 
-```
+```sh
 yarn add capture-exit
 // or
 npm install --save capture-exit
@@ -24,7 +24,7 @@ npm install --save capture-exit
 
 ### Usage
 
-```
+```js
 // as early in startup as possible
 require('capture-exit').captureExit();
 
