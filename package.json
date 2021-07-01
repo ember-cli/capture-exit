@@ -23,7 +23,7 @@
   "devDependencies": {
     "chai": "^4.3.4",
     "execa": "1.0.0",
-    "mocha": "^6.2.2",
+    "mocha": "^9.0.1",
     "ora": "^3.4.0"
   },
   "dependencies": {
