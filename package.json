@@ -10,16 +10,13 @@
   "files": [
     "index.js"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/stefanpenner/capture-exit.git"
-  },
+  "repository": "https://github.com/ember-cli/capture-exit",
   "author": "Stefan Penner <stefan.penner@gmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/stefanpenner/capture-exit/issues"
+    "url": "https://github.com/ember-cli/capture-exit/issues"
   },
-  "homepage": "https://github.com/stefanpenner/capture-exit#readme",
+  "homepage": "https://github.com/ember-cli/capture-exit#readme",
   "devDependencies": {
     "chai": "^4.3.4",
     "execa": "1.0.0",
